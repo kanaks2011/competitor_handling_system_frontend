@@ -1,0 +1,211 @@
+<div class="page-header">
+  <div>
+    <h2>Scheduler</h2>
+    <p>Configure when automated crawls run and review batch crawl history</p>
+  </div>
+  <p-button
+    label="Run batch crawl now"
+    icon="pi pi-play"
+    [loading]="runningNow()"
+    (onClick)="runBatchCrawlNow()"
+  />
+</div>
+
+<div class="scheduler-grid">
+  <p-card styleClass="settings-card">
+    <ng-template #header>
+      <div class="card-header">
+        <i class="pi pi-clock"></i>
+        <div>
+          <strong>Automated crawl schedule</strong>
+          <span>Set your preferred run time in your local timezone</span>
+        </div>
+      </div>
+    </ng-template>
+
+    @if (configLoading()) {
+      <p class="loading-text">Loading settings…</p>
+    } @else {
+      <form [formGroup]="form" (ngSubmit)="saveConfig()" class="settings-form">
+        <div class="field toggle-field">
+          <div>
+            <label for="enabled">Enable automated crawls</label>
+            <p class="hint">When enabled, all active competitors with sources are crawled on schedule</p>
+          </div>
+          <p-toggleswitch inputId="enabled" formControlName="enabled" />
+        </div>
+
+        <div class="field">
+          <label for="frequency">Frequency</label>
+          <p-select
+            inputId="frequency"
+            formControlName="frequency"
+            [options]="frequencyOptions"
+            optionLabel="label"
+            optionValue="value"
+            class="w-full"
+          />
+        </div>
+
+        @if (isWeekly()) {
+          <div class="field">
+            <label for="dayOfWeek">Day of week</label>
+            <p-select
+              inputId="dayOfWeek"
+              formControlName="dayOfWeek"
+              [options]="dayOfWeekOptions"
+              optionLabel="label"
+              optionValue="value"
+              class="w-full"
+            />
+          </div>
+        }
+
+        <div class="field">
+          <label for="runTime">Run time</label>
+          <input id="runTime" type="time" formControlName="runTime" class="time-input" />
+        </div>
+
+        <div class="field">
+          <label for="timezone">Timezone</label>
+          <p-select
+            inputId="timezone"
+            formControlName="timezone"
+            [options]="timezoneOptions"
+            optionLabel="label"
+            optionValue="value"
+            [filter]="true"
+            filterPlaceholder="Search timezone"
+            class="w-full"
+          />
+        </div>
+
+        @if (cronDescription()) {
+          <p-message severity="info" [text]="cronDescription()" styleClass="schedule-summary" />
+        }
+
+        @if (form.controls.enabled.value && triggerRegistered() && nextFireAt()) {
+          <p-message
+            severity="success"
+            [text]="'Next scheduled run: ' + formatDate(nextFireAt())"
+            styleClass="schedule-summary"
+          />
+        }
+
+        @if (form.controls.enabled.value && !triggerRegistered()) {
+          <p-message
+            severity="warn"
+            text="Scheduler is enabled but no Quartz trigger is registered. Save again after restarting the backend."
+            styleClass="schedule-summary"
+          />
+        }
+
+        @if (lastRunAt()) {
+          <p class="meta-line">Last batch run: {{ formatDate(lastRunAt()) }}</p>
+        }
+
+        <div class="form-actions">
+          <p-button type="submit" label="Save schedule" icon="pi pi-check" [loading]="saving()" />
+        </div>
+      </form>
+    }
+  </p-card>
+
+  <p-card styleClass="history-card">
+    <ng-template #header>
+      <div class="card-header history-header">
+        <i class="pi pi-history"></i>
+        <div class="header-text">
+          <strong>Crawl history</strong>
+          <span>
+            @if (autoRefreshEnabled()) {
+              Auto-refreshes every 30 seconds
+            } @else {
+              Enable auto refresh to poll for new scheduled runs
+            }
+          </span>
+        </div>
+        <div class="history-actions">
+          @if (lastRefreshedAt(); as refreshed) {
+            <span class="last-refresh">Updated {{ formatDate(refreshed.toISOString()) }}</span>
+          }
+          <div class="auto-refresh-toggle">
+            <label for="autoRefresh">Auto refresh</label>
+            <p-toggleswitch
+              inputId="autoRefresh"
+              [ngModel]="autoRefreshEnabled()"
+              (ngModelChange)="onAutoRefreshToggle($event)"
+            />
+          </div>
+          <p-button
+            icon="pi pi-refresh"
+            [rounded]="true"
+            [text]="true"
+            severity="secondary"
+            title="Refresh now"
+            (onClick)="refreshNow()"
+          />
+        </div>
+      </div>
+    </ng-template>
+
+    <p-table
+      [value]="logs()"
+      [loading]="logsLoading()"
+      [paginator]="true"
+      [rows]="pageSize"
+      [totalRecords]="totalLogs()"
+      [lazy]="true"
+      (onLazyLoad)="onPageChange($event)"
+      styleClass="logs-table"
+    >
+      <ng-template #header>
+        <tr>
+          <th>Started</th>
+          <th>Trigger</th>
+          <th>Status</th>
+          <th>Results</th>
+          <th>Duration</th>
+        </tr>
+      </ng-template>
+      <ng-template #body let-log>
+        <tr>
+          <td>{{ formatDate(log.startedAt) }}</td>
+          <td>
+            <p-tag [value]="triggerLabel(log.triggerType)" severity="secondary" />
+          </td>
+          <td>
+            <p-tag [value]="statusLabel(log.status)" [severity]="statusSeverity(log.status)" />
+          </td>
+          <td>
+            <span class="results">
+              {{ log.competitorsSuccess }}/{{ log.competitorsTotal }} ok
+              @if (log.competitorsFailed > 0) {
+                · {{ log.competitorsFailed }} failed
+              }
+              @if (log.competitorsSkipped > 0) {
+                · {{ log.competitorsSkipped }} skipped
+              }
+            </span>
+            @if (log.errorMessage) {
+              <span class="error-msg" [title]="log.errorMessage">{{ log.errorMessage }}</span>
+            }
+          </td>
+          <td>{{ duration(log) }}</td>
+        </tr>
+      </ng-template>
+      <ng-template #emptymessage>
+        <tr>
+          <td colspan="5">
+            <div class="empty-state">
+              <i class="pi pi-inbox"></i>
+              <p>No batch crawl runs yet. Use "Run batch crawl now" to test.</p>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </p-card>
+</div>
+
+<p-toast />

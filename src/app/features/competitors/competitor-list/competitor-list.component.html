@@ -1,0 +1,110 @@
+<div class="page-header">
+  <div>
+    <h2>Competitors</h2>
+    <p>Manage competitors and the URLs you want to track</p>
+  </div>
+  <p-button label="Add competitor" icon="pi pi-plus" routerLink="/competitors/new" />
+</div>
+
+<p-table
+  [value]="competitors()"
+  [loading]="loading()"
+  styleClass="competitor-table"
+  [rowHover]="true"
+>
+  <ng-template #header>
+    <tr>
+      <th>Name</th>
+      <th>Website</th>
+      <th>Sources</th>
+      <th>Crawl status</th>
+      <th>Last crawled</th>
+      <th>Active</th>
+      <th>Actions</th>
+    </tr>
+  </ng-template>
+  <ng-template #body let-competitor>
+    <tr>
+      <td>
+        <strong>{{ competitor.name }}</strong>
+      </td>
+      <td>
+        @if (competitor.websiteUrl) {
+          <a [href]="competitor.websiteUrl" target="_blank" rel="noopener">{{ competitor.websiteUrl }}</a>
+        } @else {
+          <span class="muted">—</span>
+        }
+      </td>
+      <td>{{ competitor.sourceCount }}</td>
+      <td>
+        <p-tag
+          [value]="crawlStatusLabel(competitor.lastCrawlStatus)"
+          [severity]="crawlStatusSeverity(competitor.lastCrawlStatus)"
+        />
+      </td>
+      <td>{{ formatDate(competitor.lastCrawledAt) }}</td>
+      <td>
+        <div class="status-cell">
+          <p-toggleswitch
+            [ngModel]="competitor.active"
+            (ngModelChange)="onStatusToggle(competitor, $event)"
+          />
+          <p-tag [value]="competitor.active ? 'Active' : 'Inactive'" [severity]="competitor.active ? 'success' : 'secondary'" />
+        </div>
+      </td>
+      <td>
+        <div class="actions">
+          <p-button
+            label="View details"
+            icon="pi pi-eye"
+            [text]="true"
+            (onClick)="openViewDetails(competitor, $event)"
+          />
+          <p-button
+            icon="pi pi-sync"
+            [rounded]="true"
+            [text]="true"
+            severity="info"
+            [loading]="isCrawling(competitor.id)"
+            (onClick)="runCrawl(competitor, $event)"
+            title="Run crawl now"
+          />
+          <p-button
+            icon="pi pi-pencil"
+            [rounded]="true"
+            [text]="true"
+            [routerLink]="['/competitors', competitor.id]"
+            title="Edit competitor"
+          />
+          <p-button
+            icon="pi pi-trash"
+            severity="danger"
+            [rounded]="true"
+            [text]="true"
+            (onClick)="confirmDelete(competitor)"
+          />
+        </div>
+      </td>
+    </tr>
+  </ng-template>
+  <ng-template #emptymessage>
+    <tr>
+      <td colspan="7">
+        <div class="empty-state">
+          <i class="pi pi-users"></i>
+          <p>No competitors yet. Add your first competitor to start tracking.</p>
+          <p-button label="Add competitor" icon="pi pi-plus" routerLink="/competitors/new" />
+        </div>
+      </td>
+    </tr>
+  </ng-template>
+</p-table>
+
+<p-confirmDialog />
+<p-toast />
+
+<app-competitor-view-dialog
+  [(visible)]="viewDialogVisible"
+  [competitorId]="viewCompetitorId()"
+  [competitorName]="viewCompetitorName()"
+/>

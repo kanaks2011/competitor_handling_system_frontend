@@ -1,0 +1,142 @@
+@if (loading()) {
+  <p>Loading event analysis...</p>
+} @else if (event(); as item) {
+  <div class="page-header">
+    <div>
+      <h2>Competitor event</h2>
+      <p>{{ item.competitorName }} · {{ sourceTypeLabel(item.sourceType) }}</p>
+    </div>
+    <p-button
+      label="Back to competitor"
+      icon="pi pi-arrow-left"
+      [outlined]="true"
+      [routerLink]="['/competitors', item.competitorId]"
+    />
+  </div>
+
+  <div class="layout-grid">
+    <p-card header="Analysis status">
+      <div class="status-row">
+        <p-tag [value]="item.analysisStatus" [severity]="statusSeverity(item.analysisStatus)" />
+        @if (item.salesRisk) {
+          <p-tag [value]="'Sales risk: ' + item.salesRisk" [severity]="riskSeverity(item.salesRisk)" />
+        }
+        @if (item.urgencyLevel) {
+          <p-tag [value]="'Urgency: ' + item.urgencyLevel" [severity]="riskSeverity(item.urgencyLevel)" />
+        }
+        <span class="muted">Detected {{ formatDate(item.detectedAt) }}</span>
+      </div>
+      @if (item.errorMessage) {
+        <p-message severity="error" [text]="item.errorMessage" styleClass="mt-3 w-full" />
+      }
+    </p-card>
+
+    @if (item.analysisStatus === 'DONE') {
+      <p-card header="Gemini intelligence">
+        <div class="analysis-grid">
+          <div class="field">
+            <label>Change type</label>
+            <p>{{ item.changeType ?? '—' }}</p>
+          </div>
+          <div class="field">
+            <label>Main message</label>
+            <p>{{ item.mainMessage ?? '—' }}</p>
+          </div>
+          <div class="field">
+            <label>Target audience</label>
+            <p>{{ item.targetAudience ?? '—' }}</p>
+          </div>
+          <div class="field">
+            <label>Offer</label>
+            <p>{{ item.offer ?? '—' }}</p>
+          </div>
+          <div class="field">
+            <label>CTA</label>
+            <p>{{ item.cta ?? '—' }}</p>
+          </div>
+          <div class="field full-width">
+            <label>Positioning angle</label>
+            <p>{{ item.positioningAngle ?? '—' }}</p>
+          </div>
+        </div>
+      </p-card>
+
+      <p-card header="AI response playbook">
+        <div class="responses-header">
+          <p class="responses-intro">
+            Ready-to-use sales and marketing responses generated from this event.
+          </p>
+          <p-button
+            label="Regenerate all"
+            icon="pi pi-refresh"
+            [loading]="regenerating()"
+            [disabled]="regenerating()"
+            (onClick)="regenerateResponses()"
+          />
+        </div>
+
+        @if (item.generatedResponse; as response) {
+          <div class="responses-meta">
+            <p-tag [value]="response.status" [severity]="statusSeverity(response.status)" />
+            @if (response.generatedAt) {
+              <span class="muted">Generated {{ formatDate(response.generatedAt) }}</span>
+            }
+          </div>
+
+          @if (response.errorMessage) {
+            <p-message
+              [severity]="response.status === 'DONE' ? 'warn' : 'error'"
+              [text]="response.status === 'DONE'
+                ? 'Latest regeneration failed: ' + response.errorMessage + ' Showing the previous version below.'
+                : response.errorMessage"
+              styleClass="mt-3 w-full"
+            />
+          }
+
+          @if (response.status === 'DONE') {
+            <div class="response-grid">
+              @for (field of responseFields; track field.key) {
+                <div class="response-card">
+                  <div class="response-card-header">
+                    <div class="response-title">
+                      <i class="pi" [class]="field.icon"></i>
+                      <span>{{ field.label }}</span>
+                    </div>
+                    <p-button
+                      icon="pi pi-copy"
+                      [text]="true"
+                      [rounded]="true"
+                      severity="secondary"
+                      [disabled]="!responseValue(response, field)"
+                      (onClick)="copyResponse(responseValue(response, field), field.label)"
+                      ariaLabel="Copy {{ field.label }}"
+                    />
+                  </div>
+                  <p class="response-body">{{ responseValue(response, field) ?? '—' }}</p>
+                </div>
+              }
+            </div>
+          } @else if (response.status === 'PENDING') {
+            <p class="muted pending-note">Generating responses...</p>
+          } @else if (response.status === 'FAILED') {
+            <p class="muted pending-note">Response generation failed. Use Regenerate all to retry.</p>
+          }
+        } @else {
+          <p class="muted pending-note">No responses yet. They will appear after analysis completes.</p>
+        }
+      </p-card>
+    }
+
+    <p-card header="Source change context">
+      <p class="summary">{{ item.changeSummary ?? '—' }}</p>
+      <a [href]="item.sourceUrl" target="_blank" rel="noopener">{{ item.sourceUrl }}</a>
+      @if (item.diffUnified) {
+        <pre class="diff-unified">{{ item.diffUnified }}</pre>
+      }
+    </p-card>
+  </div>
+} @else {
+  <p>Event not found.</p>
+}
+
+<p-toast />

@@ -1,0 +1,88 @@
+<div class="layout">
+  <aside class="sidebar" [class.open]="mobileNavOpen()">
+    <div class="brand">
+      <i class="pi pi-chart-line"></i>
+      <div>
+        <strong>Competitor AI</strong>
+        <span>Intelligence Platform</span>
+      </div>
+    </div>
+
+    <nav class="nav">
+      <a routerLink="/dashboard" routerLinkActive="active" (click)="closeMobileNav()">
+        <i class="pi pi-home"></i>
+        Dashboard
+      </a>
+      <a routerLink="/competitors" routerLinkActive="active" (click)="closeMobileNav()">
+        <i class="pi pi-users"></i>
+        Competitors
+      </a>
+      <a routerLink="/scheduler" routerLinkActive="active" (click)="closeMobileNav()">
+        <i class="pi pi-clock"></i>
+        Scheduler
+      </a>
+      <a routerLink="/alerts" routerLinkActive="active" (click)="closeMobileNav()">
+        <i class="pi pi-bell"></i>
+        Alerts
+      </a>
+      <a routerLink="/recipients" routerLinkActive="active" (click)="closeMobileNav()">
+        <i class="pi pi-envelope"></i>
+        Recipients
+      </a>
+      <a routerLink="/reports" routerLinkActive="active" (click)="closeMobileNav()">
+        <i class="pi pi-file"></i>
+        Reports
+      </a>
+      <a routerLink="/system" routerLinkActive="active" (click)="closeMobileNav()">
+        <i class="pi pi-heart"></i>
+        System health
+      </a>
+    </nav>
+  </aside>
+
+  @if (mobileNavOpen()) {
+    <button type="button" class="sidebar-backdrop" aria-label="Close menu" (click)="closeMobileNav()"></button>
+  }
+
+  <div class="main">
+    <header class="topbar">
+      <div class="topbar-start">
+        <p-button
+          class="menu-toggle"
+          icon="pi pi-bars"
+          [text]="true"
+          severity="secondary"
+          (onClick)="toggleMobileNav()"
+        />
+        <div>
+          <h1>Dashboard</h1>
+          <p>Monitor competitor activity and intelligence</p>
+        </div>
+      </div>
+
+      <div class="user-actions">
+        <app-alert-bell />
+        @if (authService.currentUser(); as user) {
+          <div class="user-info">
+            <p-avatar [label]="user.firstName.charAt(0) + user.lastName.charAt(0)" shape="circle" />
+            <div>
+              <strong>{{ user.firstName }} {{ user.lastName }}</strong>
+              <span>{{ user.email }}</span>
+            </div>
+          </div>
+        }
+        <p-button
+          label="Logout"
+          icon="pi pi-sign-out"
+          severity="secondary"
+          [outlined]="true"
+          (onClick)="logout()"
+        />
+      </div>
+    </header>
+
+    <main class="content">
+      <router-outlet />
+    </main>
+  </div>
+</div>

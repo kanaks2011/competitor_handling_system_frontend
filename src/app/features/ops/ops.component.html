@@ -1,0 +1,142 @@
+<div class="page-header">
+  <div>
+    <h2>System health</h2>
+    <p>Pipeline queue, dependencies, and scheduler — read-only monitoring</p>
+  </div>
+  <div class="header-actions">
+    <p-button
+      label="Test connections"
+      icon="pi pi-bolt"
+      [outlined]="true"
+      [loading]="probing()"
+      (onClick)="probeDependencies()"
+    />
+    <p-button label="Refresh" icon="pi pi-refresh" [outlined]="true" (onClick)="loadStatus()" />
+  </div>
+</div>
+
+@if (loading() && !status()) {
+  <p>Loading system status...</p>
+} @else if (status(); as item) {
+  <div class="ops-grid">
+    <p-card header="Overall status">
+      <div class="status-row">
+        <p-tag [value]="item.overallStatus" [severity]="overallSeverity(item.overallStatus)" />
+        <span class="muted">Checked {{ formatDate(item.checkedAt) }}</span>
+      </div>
+      @if (item.overallStatus !== 'OK') {
+        <p-message
+          severity="warn"
+          styleClass="mt-3 w-full"
+          text="Something needs attention — review pipeline metrics and dependencies below."
+        />
+      }
+    </p-card>
+
+    <p-card header="Pipeline queue">
+      <div class="metric-grid">
+        <div class="metric">
+          <span class="metric-label">Awaiting AI analysis</span>
+          <p-tag
+            [value]="'' + item.pipeline.significantChangesAwaitingAnalysis"
+            [severity]="metricSeverity(item.pipeline.significantChangesAwaitingAnalysis)"
+          />
+        </div>
+        <div class="metric">
+          <span class="metric-label">Analysis pending</span>
+          <p-tag [value]="'' + item.pipeline.analysisPending" [severity]="metricSeverity(item.pipeline.analysisPending)" />
+        </div>
+        <div class="metric">
+          <span class="metric-label">Analysis failed</span>
+          <p-tag [value]="'' + item.pipeline.analysisFailed" [severity]="failedMetricSeverity(item.pipeline.analysisFailed)" />
+        </div>
+        <div class="metric">
+          <span class="metric-label">Responses pending</span>
+          <p-tag [value]="'' + item.pipeline.responsesPending" [severity]="metricSeverity(item.pipeline.responsesPending)" />
+        </div>
+        <div class="metric">
+          <span class="metric-label">Responses failed</span>
+          <p-tag [value]="'' + item.pipeline.responsesFailed" [severity]="failedMetricSeverity(item.pipeline.responsesFailed)" />
+        </div>
+        <div class="metric">
+          <span class="metric-label">Emails not sent</span>
+          <p-tag [value]="'' + item.pipeline.alertsEmailPending" [severity]="metricSeverity(item.pipeline.alertsEmailPending)" />
+        </div>
+        <div class="metric">
+          <span class="metric-label">Email send failures</span>
+          <p-tag [value]="'' + item.pipeline.alertsEmailFailed" [severity]="failedMetricSeverity(item.pipeline.alertsEmailFailed)" />
+        </div>
+        <div class="metric">
+          <span class="metric-label">Report email failures</span>
+          <p-tag
+            [value]="'' + item.pipeline.weeklyReportsEmailFailed"
+            [severity]="failedMetricSeverity(item.pipeline.weeklyReportsEmailFailed)"
+          />
+        </div>
+      </div>
+      <p class="hint muted">
+        Zero counts are healthy. Failed analysis/responses usually need a retry from the event page.
+      </p>
+    </p-card>
+
+    <p-card header="Dependencies">
+      <div class="dependency-list">
+        @for (dependency of item.dependencies; track dependency.name) {
+          <div class="dependency-row">
+            <div>
+              <strong>{{ dependencyLabel(dependency) }}</strong>
+              <p class="muted">{{ dependency.message }}</p>
+            </div>
+            <p-tag [value]="dependency.status" [severity]="dependencySeverity(dependency.status)" />
+          </div>
+        }
+      </div>
+
+      @if (probeResults().length > 0) {
+        <div class="probe-results">
+          <h4>Live probe results</h4>
+          @for (result of probeResults(); track result.name) {
+            <div class="probe-row">
+              <span>{{ result.name }}</span>
+              <p-tag [value]="result.reachable ? 'REACHABLE' : 'FAILED'" [severity]="result.reachable ? 'success' : 'danger'" />
+              <span class="muted">{{ result.message }} ({{ result.durationMs }}ms)</span>
+            </div>
+          }
+        </div>
+      }
+    </p-card>
+
+    <p-card header="Scheduler & last crawl">
+      @if (item.scheduler; as scheduler) {
+        <div class="info-block">
+          <p><strong>Schedule:</strong> {{ scheduler.cronDescription }}</p>
+          <p><strong>Enabled:</strong> {{ scheduler.enabled ? 'Yes' : 'No' }}</p>
+          <p><strong>Last run:</strong> {{ formatDate(scheduler.lastRunAt) }}</p>
+          <p><strong>Next run:</strong> {{ formatDate(scheduler.nextFireAt) }}</p>
+          <p-button label="Open scheduler" icon="pi pi-clock" [text]="true" routerLink="/scheduler" />
+        </div>
+      }
+
+      @if (item.lastCrawl; as crawl) {
+        <div class="info-block">
+          <div class="status-row">
+            <strong>Last batch crawl</strong>
+            <p-tag [value]="crawl.status" [severity]="crawlSeverity(crawl.status)" />
+          </div>
+          <p class="muted">Started {{ formatDate(crawl.startedAt) }} · {{ crawl.triggerType }}</p>
+          <p>
+            {{ crawl.competitorsSuccess }}/{{ crawl.competitorsTotal }} succeeded,
+            {{ crawl.competitorsFailed }} failed, {{ crawl.competitorsSkipped }} skipped
+          </p>
+          @if (crawl.errorMessage) {
+            <p-message severity="error" [text]="crawl.errorMessage" styleClass="w-full" />
+          }
+        </div>
+      } @else {
+        <p class="muted">No crawl logs yet.</p>
+      }
+    </p-card>
+  </div>
+}
+
+<p-toast />

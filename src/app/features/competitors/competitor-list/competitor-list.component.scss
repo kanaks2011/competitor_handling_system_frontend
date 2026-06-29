@@ -1,0 +1,61 @@
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+
+  h2 {
+    margin: 0 0 0.25rem;
+    font-size: 1.5rem;
+  }
+
+  p {
+    margin: 0;
+    color: #64748b;
+  }
+}
+
+.status-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex-wrap: wrap;
+}
+
+.muted {
+  color: #94a3b8;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 2rem 1rem;
+  color: #64748b;
+
+  i {
+    font-size: 2rem;
+    margin-bottom: 0.75rem;
+    display: block;
+  }
+
+  p {
+    margin: 0 0 1rem;
+  }
+}
+
+:host ::ng-deep .competitor-table a {
+  color: #4f46e5;
+  text-decoration: none;
+}
+
+@media (max-width: 768px) {
+  .page-header {
+    flex-direction: column;
+  }
+}

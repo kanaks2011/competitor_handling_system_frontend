@@ -1,0 +1,309 @@
+<p-dialog
+  [header]="competitorName() || 'Competitor details'"
+  [(visible)]="visible"
+  [modal]="true"
+  [draggable]="false"
+  [style]="{ width: 'min(72rem, 96vw)' }"
+  [contentStyle]="{ padding: '0 1.25rem 1.25rem' }"
+  (onHide)="onHide()"
+>
+  <div class="dialog-toolbar">
+    <p class="hint">Latest crawl, intelligence, and change history</p>
+    <p-button label="Edit competitor" icon="pi pi-pencil" [outlined]="true" (onClick)="goToEdit()" />
+  </div>
+
+  <div class="view-sections">
+    <section class="view-section">
+      <h3>Latest crawl</h3>
+      @if (crawlLoading()) {
+        <p class="muted">Loading crawl...</p>
+      } @else if (latestCrawl(); as crawl) {
+        <div class="crawl-summary">
+          <p-tag
+            [value]="crawl.status"
+            [severity]="crawl.status === 'DONE' ? 'success' : crawl.status === 'FAILED' ? 'danger' : 'info'"
+          />
+          <span>{{ crawl.sourcesSuccess }}/{{ crawl.sourcesTotal }} sources succeeded</span>
+          @if (crawl.finishedAt) {
+            <span class="muted">Finished: {{ crawl.finishedAt | date: 'medium' }}</span>
+          }
+        </div>
+        <p-table [value]="crawl.snapshots" [rowHover]="true">
+          <ng-template #header>
+            <tr>
+              <th>Source</th>
+              <th>Status</th>
+              <th>Content size</th>
+            </tr>
+          </ng-template>
+          <ng-template #body let-snapshot>
+            <tr>
+              <td>
+                <strong>{{ snapshot.sourceType }}</strong>
+                <div class="muted">{{ snapshot.sourceUrl }}</div>
+              </td>
+              <td>
+                <p-tag
+                  [value]="snapshot.status"
+                  [severity]="snapshot.status === 'SUCCESS' ? 'success' : 'danger'"
+                />
+              </td>
+              <td>
+                @if (snapshot.status === 'SUCCESS') {
+                  {{ snapshot.contentLength }} chars
+                } @else {
+                  <span class="error-text">{{ snapshot.errorMessage }}</span>
+                }
+              </td>
+            </tr>
+          </ng-template>
+        </p-table>
+      } @else {
+        <p class="muted">No crawl has been run yet.</p>
+      }
+    </section>
+
+    <section class="view-section">
+      <h3>Intelligence overview</h3>
+      @if (intelligenceLoading()) {
+        <p class="muted">Loading intelligence...</p>
+      } @else if (intelligence(); as intel) {
+        <div class="intelligence-grid">
+          <div class="intel-block">
+            <h4>Recent events</h4>
+            @if (intel.recentEvents.length === 0) {
+              <p class="muted">No analyzed events yet.</p>
+            } @else {
+              <div class="event-list">
+                @for (event of intel.recentEvents; track event.id) {
+                  <div class="event-item">
+                    <div class="event-item-header">
+                      @if (event.urgencyLevel) {
+                        <p-tag [value]="event.urgencyLevel" [severity]="urgencySeverity(event.urgencyLevel)" />
+                      }
+                      <span class="muted">{{ formatDetectedAt(event.createdAt) }}</span>
+                    </div>
+                    <strong>{{ event.changeType ?? 'Competitor event' }}</strong>
+                    <p>{{ event.mainMessage ?? '—' }}</p>
+                    <p-button
+                      label="View event"
+                      icon="pi pi-arrow-right"
+                      [text]="true"
+                      (onClick)="navigateToEvent(event.id)"
+                    />
+                  </div>
+                }
+              </div>
+            }
+          </div>
+
+          <div class="intel-block">
+            <h4>Source activity</h4>
+            <p-table [value]="intel.sourceBreakdown" [rowHover]="true">
+              <ng-template #header>
+                <tr>
+                  <th>Source</th>
+                  <th>Changes</th>
+                  <th>Significant</th>
+                  <th>Last change</th>
+                </tr>
+              </ng-template>
+              <ng-template #body let-source>
+                <tr>
+                  <td>
+                    <p-tag [value]="sourceTypeLabel(source.sourceType)" />
+                    <div class="muted">{{ source.sourceUrl }}</div>
+                  </td>
+                  <td>{{ source.totalChanges }}</td>
+                  <td>{{ source.significantChanges }}</td>
+                  <td>{{ source.lastChangeAt ? formatDetectedAt(source.lastChangeAt) : '—' }}</td>
+                </tr>
+              </ng-template>
+              <ng-template #emptymessage>
+                <tr>
+                  <td colspan="4">No source activity yet.</td>
+                </tr>
+              </ng-template>
+            </p-table>
+          </div>
+
+          <div class="intel-block full-width">
+            <h4>Activity timeline</h4>
+            @if (intel.timeline.length === 0) {
+              <p class="muted">No timeline entries yet.</p>
+            } @else {
+              <div class="timeline">
+                @for (item of intel.timeline; track item.changeId) {
+                  <div
+                    class="timeline-item"
+                    [class.clickable]="item.eventId"
+                    (click)="openTimelineEvent(item)"
+                  >
+                    <div class="timeline-marker"></div>
+                    <div class="timeline-content">
+                      <div class="timeline-header">
+                        <span>{{ formatDetectedAt(item.detectedAt) }}</span>
+                        <p-tag
+                          [value]="changeStatusLabel(item.changeStatus)"
+                          [severity]="changeStatusSeverity(item.changeStatus)"
+                        />
+                        @if (item.urgencyLevel) {
+                          <p-tag [value]="item.urgencyLevel" [severity]="urgencySeverity(item.urgencyLevel)" />
+                        }
+                      </div>
+                      <strong>{{ sourceTypeLabel(item.sourceType) }}</strong>
+                      <p>{{ item.summary ?? '—' }}</p>
+                      @if (item.eventId) {
+                        <span class="timeline-link">View AI analysis →</span>
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        </div>
+      }
+    </section>
+
+    <section class="view-section">
+      <h3>Change history</h3>
+      <div class="changes-toolbar">
+        <p-select
+          [options]="sourceTypes"
+          optionLabel="label"
+          optionValue="value"
+          placeholder="All source types"
+          [ngModel]="changeSourceFilter()"
+          (ngModelChange)="changeSourceFilter.set($event)"
+          [showClear]="true"
+          styleClass="filter-select"
+        />
+        <input
+          type="date"
+          class="date-input"
+          [ngModel]="changeFromDate()"
+          (ngModelChange)="changeFromDate.set($event)"
+        />
+        <input
+          type="date"
+          class="date-input"
+          [ngModel]="changeToDate()"
+          (ngModelChange)="changeToDate.set($event)"
+        />
+        <div class="filter-toggle">
+          <label>Significant only</label>
+          <p-toggleswitch [ngModel]="significantOnly()" (ngModelChange)="significantOnly.set($event)" />
+        </div>
+        <p-button label="Apply" icon="pi pi-filter" (onClick)="applyChangeFilters()" />
+        <p-button label="Clear" [outlined]="true" severity="secondary" (onClick)="clearChangeFilters()" />
+      </div>
+
+      <p-table
+        [value]="changes()"
+        [loading]="changesLoading()"
+        [paginator]="true"
+        [rows]="changesPageSize"
+        [totalRecords]="changesTotal()"
+        [lazy]="true"
+        (onLazyLoad)="onChangesPageChange($event)"
+        [rowHover]="true"
+      >
+        <ng-template #header>
+          <tr>
+            <th>Detected</th>
+            <th>Source</th>
+            <th>Status</th>
+            <th>Summary</th>
+            <th></th>
+            <th>AI</th>
+          </tr>
+        </ng-template>
+        <ng-template #body let-change>
+          <tr>
+            <td>{{ formatDetectedAt(change.detectedAt) }}</td>
+            <td>
+              <p-tag [value]="sourceTypeLabel(change.sourceType)" />
+              <div class="muted">{{ change.sourceUrl }}</div>
+            </td>
+            <td>
+              <p-tag
+                [value]="changeStatusLabel(change.changeStatus)"
+                [severity]="changeStatusSeverity(change.changeStatus)"
+              />
+            </td>
+            <td>{{ change.summary ?? '—' }}</td>
+            <td>
+              <p-button
+                icon="pi pi-eye"
+                [rounded]="true"
+                [text]="true"
+                title="View diff"
+                [disabled]="change.changeStatus === 'FIRST_SNAPSHOT' || change.changeStatus === 'NO_CHANGE'"
+                (onClick)="openChangeDetail(change)"
+              />
+            </td>
+            <td>
+              @if (change.eventId && change.analysisStatus === 'DONE') {
+                <p-button
+                  label="View"
+                  icon="pi pi-sparkles"
+                  [text]="true"
+                  (onClick)="navigateToEvent(change.eventId!)"
+                />
+              } @else if (change.analysisStatus === 'PENDING' || isAnalyzingChange(change.id)) {
+                <p-tag value="Analyzing..." severity="info" />
+              } @else if (change.changeStatus === 'SIGNIFICANT') {
+                <p-button
+                  label="Analyze"
+                  icon="pi pi-sparkles"
+                  [text]="true"
+                  [loading]="isAnalyzingChange(change.id)"
+                  (onClick)="openEventAnalysis(change)"
+                />
+              } @else {
+                <span class="muted">—</span>
+              }
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template #emptymessage>
+          <tr>
+            <td colspan="6">No changes detected yet.</td>
+          </tr>
+        </ng-template>
+      </p-table>
+    </section>
+  </div>
+</p-dialog>
+
+<p-dialog
+  header="Change diff"
+  [visible]="diffDialogVisible()"
+  (visibleChange)="diffDialogVisible.set($event)"
+  [modal]="true"
+  [style]="{ width: 'min(56rem, 95vw)' }"
+  (onHide)="closeChangeDetail()"
+>
+  @if (changeDetailLoading()) {
+    <p>Loading diff...</p>
+  } @else if (selectedChange(); as change) {
+    <div class="diff-meta">
+      <p-tag [value]="sourceTypeLabel(change.sourceType)" />
+      <p-tag
+        [value]="changeStatusLabel(change.changeStatus)"
+        [severity]="changeStatusSeverity(change.changeStatus)"
+      />
+      <span class="muted">{{ formatDetectedAt(change.detectedAt) }}</span>
+    </div>
+    <p class="diff-summary">{{ change.summary }}</p>
+
+    @if (diffHtml()) {
+      <div class="diff-panel" [innerHTML]="diffHtml()"></div>
+    } @else if (change.diffUnified) {
+      <pre class="diff-unified">{{ change.diffUnified }}</pre>
+    } @else {
+      <p class="muted">No diff content available.</p>
+    }
+  }
+</p-dialog>

@@ -1,0 +1,147 @@
+<div class="page-header">
+  <div>
+    <h2>Weekly reports</h2>
+    <p>Configure when intelligence summaries are emailed and review past reports</p>
+  </div>
+  <p-button
+    label="Generate report now"
+    icon="pi pi-file-export"
+    [loading]="generating()"
+    (onClick)="generateNow()"
+  />
+</div>
+
+<div class="reports-grid">
+  <p-card styleClass="settings-card">
+    <ng-template #header>
+      <div class="card-header">
+        <i class="pi pi-calendar"></i>
+        <div>
+          <strong>Report schedule</strong>
+          <span>Choose the day and time reports are sent to recipients</span>
+        </div>
+      </div>
+    </ng-template>
+
+    @if (configLoading()) {
+      <p class="loading-text">Loading schedule…</p>
+    } @else {
+      <form [formGroup]="scheduleForm" (ngSubmit)="saveSchedule()" class="settings-form">
+        <div class="field toggle-field">
+          <div>
+            <label for="enabled">Enable automatic weekly reports</label>
+            <p class="hint">When enabled, a report is generated and emailed on schedule</p>
+          </div>
+          <p-toggleswitch inputId="enabled" formControlName="enabled" />
+        </div>
+
+        <div class="field">
+          <label for="dayOfWeek">Day of week</label>
+          <p-select
+            inputId="dayOfWeek"
+            formControlName="dayOfWeek"
+            [options]="dayOfWeekOptions"
+            optionLabel="label"
+            optionValue="value"
+            class="w-full"
+          />
+        </div>
+
+        <div class="field">
+          <label for="runTime">Send time</label>
+          <input id="runTime" type="time" formControlName="runTime" class="time-input" />
+        </div>
+
+        <div class="field">
+          <label for="timezone">Timezone</label>
+          <p-select
+            inputId="timezone"
+            formControlName="timezone"
+            [options]="timezoneOptions"
+            optionLabel="label"
+            optionValue="value"
+            [filter]="true"
+            filterPlaceholder="Search timezone"
+            class="w-full"
+          />
+        </div>
+
+        <div class="schedule-summary">
+          <p><strong>Schedule:</strong> {{ scheduleDescription() }}</p>
+          @if (nextFireAt()) {
+            <p class="hint">Next run: {{ formatDate(nextFireAt()) }}</p>
+          } @else if (scheduleForm.controls.enabled.value) {
+            <p class="hint">Next run will appear after saving</p>
+          } @else {
+            <p class="hint">Automatic reports are disabled</p>
+          }
+        </div>
+
+        <p-button type="submit" label="Save schedule" icon="pi pi-save" [loading]="saving()" />
+      </form>
+    }
+  </p-card>
+
+  <p-card>
+    <p-table
+      [value]="reports()"
+      [loading]="loading()"
+      [paginator]="true"
+      [rows]="pageSize()"
+      [totalRecords]="totalRecords()"
+      [lazy]="true"
+      (onLazyLoad)="onPageChange($event)"
+      [rowHover]="true"
+    >
+      <ng-template pTemplate="header">
+        <tr>
+          <th>Report</th>
+          <th>Period</th>
+          <th>Events</th>
+          <th>High urgency</th>
+          <th>Email</th>
+          <th>Generated</th>
+          <th></th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-report>
+        <tr>
+          <td>
+            <strong>{{ report.title }}</strong>
+            <div class="muted">
+              <p-tag [value]="report.status" [severity]="statusSeverity(report.status)" />
+            </div>
+          </td>
+          <td>{{ formatDate(report.periodStart) }} – {{ formatDate(report.periodEnd) }}</td>
+          <td>{{ report.eventCount }}</td>
+          <td>{{ report.highUrgencyCount }}</td>
+          <td>
+            @if (report.emailSent) {
+              <p-tag value="Sent" severity="success" />
+            } @else if (report.emailError) {
+              <p-tag value="Failed" severity="danger" />
+            } @else {
+              <p-tag value="Not sent" severity="warn" />
+            }
+          </td>
+          <td>{{ formatDate(report.createdAt) }}</td>
+          <td>
+            <p-button
+              label="View"
+              icon="pi pi-eye"
+              [text]="true"
+              [routerLink]="['/reports', report.id]"
+            />
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="7">No weekly reports yet. Click "Generate report now" to create the first one.</td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </p-card>
+</div>
+
+<p-toast />

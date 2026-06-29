@@ -1,0 +1,182 @@
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+
+  h2 {
+    margin: 0 0 0.25rem;
+    font-size: 1.5rem;
+  }
+
+  p {
+    margin: 0;
+    color: #64748b;
+  }
+}
+
+.scheduler-grid {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem 0;
+  flex-wrap: wrap;
+
+  i {
+    font-size: 1.25rem;
+    color: #4f46e5;
+  }
+
+  strong {
+    display: block;
+    font-size: 1rem;
+  }
+
+  span {
+    color: #64748b;
+    font-size: 0.875rem;
+  }
+}
+
+.last-refresh {
+  color: #94a3b8;
+  font-size: 0.75rem;
+  white-space: nowrap;
+}
+
+.history-header {
+  width: 100%;
+  justify-content: space-between;
+}
+
+.header-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.history-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-left: auto;
+  flex-wrap: wrap;
+}
+
+.auto-refresh-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  label {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: #475569;
+    white-space: nowrap;
+  }
+}
+
+.settings-form {
+  display: grid;
+  gap: 1rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+
+  label {
+    font-weight: 600;
+    font-size: 0.875rem;
+  }
+}
+
+.toggle-field {
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.hint {
+  margin: 0.25rem 0 0;
+  color: #64748b;
+  font-size: 0.8125rem;
+}
+
+.time-input {
+  width: 100%;
+  max-width: 12rem;
+  padding: 0.625rem 0.75rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.5rem;
+  font: inherit;
+}
+
+.meta-line {
+  margin: 0;
+  color: #64748b;
+  font-size: 0.875rem;
+}
+
+.form-actions {
+  padding-top: 0.5rem;
+}
+
+.loading-text {
+  margin: 0;
+  color: #64748b;
+}
+
+.results {
+  display: block;
+  font-size: 0.875rem;
+}
+
+.error-msg {
+  display: block;
+  margin-top: 0.25rem;
+  color: #dc2626;
+  font-size: 0.75rem;
+  max-width: 18rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 2rem 1rem;
+  color: #64748b;
+
+  i {
+    font-size: 2rem;
+    margin-bottom: 0.75rem;
+    display: block;
+  }
+
+  p {
+    margin: 0;
+  }
+}
+
+@media (min-width: 1024px) {
+  .scheduler-grid {
+    grid-template-columns: 22rem 1fr;
+    align-items: start;
+  }
+}
+
+@media (max-width: 768px) {
+  .page-header {
+    flex-direction: column;
+  }
+}

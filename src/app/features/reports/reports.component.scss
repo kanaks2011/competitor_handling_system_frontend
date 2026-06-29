@@ -1,0 +1,111 @@
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+
+  h2 {
+    margin: 0 0 0.25rem;
+    font-size: 1.5rem;
+  }
+
+  p {
+    margin: 0;
+    color: #64748b;
+  }
+}
+
+.reports-grid {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem 0;
+
+  i {
+    font-size: 1.25rem;
+    color: #4f46e5;
+  }
+
+  strong {
+    display: block;
+    font-size: 1rem;
+  }
+
+  span {
+    color: #64748b;
+    font-size: 0.875rem;
+  }
+}
+
+.settings-form {
+  display: grid;
+  gap: 1rem;
+}
+
+.field {
+  display: grid;
+  gap: 0.35rem;
+
+  label {
+    font-weight: 600;
+    color: #334155;
+  }
+}
+
+.toggle-field {
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 1rem;
+}
+
+.hint {
+  margin: 0.25rem 0 0;
+  color: #64748b;
+  font-size: 0.8125rem;
+}
+
+.time-input {
+  width: 100%;
+  max-width: 12rem;
+  padding: 0.625rem 0.75rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 0.5rem;
+  font: inherit;
+}
+
+.schedule-summary {
+  padding: 0.875rem 1rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.625rem;
+
+  p {
+    margin: 0;
+    color: #334155;
+  }
+}
+
+.loading-text {
+  margin: 0;
+  color: #64748b;
+}
+
+.muted {
+  margin-top: 0.35rem;
+}
+
+@media (max-width: 768px) {
+  .page-header {
+    flex-direction: column;
+  }
+
+  .toggle-field {
+    grid-template-columns: 1fr;
+  }
+}

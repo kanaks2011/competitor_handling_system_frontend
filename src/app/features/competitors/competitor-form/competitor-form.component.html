@@ -1,0 +1,40 @@
+<div class="page-header">
+  <div>
+    <h2>Add competitor</h2>
+    <p>Create a competitor profile to start tracking sources</p>
+  </div>
+  <p-button label="Back to list" icon="pi pi-arrow-left" [outlined]="true" routerLink="/competitors" />
+</div>
+
+<p-card>
+  @if (errorMessage()) {
+    <p-message severity="error" [text]="errorMessage()!" styleClass="mb-4 w-full" />
+  }
+
+  <form [formGroup]="form" (ngSubmit)="submit()" class="form-grid">
+    <div class="field">
+      <label for="name">Name *</label>
+      <input pInputText id="name" formControlName="name" class="w-full" />
+    </div>
+
+    <div class="field">
+      <label for="websiteUrl">Website URL</label>
+      <input pInputText id="websiteUrl" formControlName="websiteUrl" class="w-full" placeholder="https://competitor.com" />
+    </div>
+
+    <div class="field full-width">
+      <label for="description">Description</label>
+      <textarea pTextarea id="description" formControlName="description" rows="4" class="w-full"></textarea>
+    </div>
+
+    <div class="field active-field">
+      <label for="active">Active</label>
+      <p-toggleswitch inputId="active" formControlName="active" />
+    </div>
+
+    <div class="actions full-width">
+      <p-button type="submit" label="Create competitor" icon="pi pi-check" [loading]="loading()" />
+      <p-button label="Cancel" severity="secondary" [outlined]="true" routerLink="/competitors" />
+    </div>
+  </form>
+</p-card>

@@ -1,0 +1,29 @@
+@if (loading()) {
+  <p>Loading report...</p>
+} @else if (report(); as item) {
+  <div class="page-header">
+    <div>
+      <h2>{{ item.title }}</h2>
+      <p>{{ formatDate(item.periodStart) }} – {{ formatDate(item.periodEnd) }}</p>
+    </div>
+    <p-button label="Back to reports" icon="pi pi-arrow-left" [outlined]="true" routerLink="/reports" />
+  </div>
+
+  <div class="meta-row">
+    <p-tag [value]="item.status" [severity]="statusSeverity(item.status)" />
+    <span>{{ item.eventCount }} events · {{ item.highUrgencyCount }} high urgency · {{ item.competitorCount }} competitors</span>
+    @if (item.emailSent) {
+      <p-tag value="Emailed" severity="success" />
+    } @else if (item.emailError) {
+      <p-tag [value]="item.emailError" severity="danger" />
+    }
+  </div>
+
+  <p-card styleClass="report-viewer-card">
+    @if (htmlContent(); as html) {
+      <div class="report-html" [innerHTML]="html"></div>
+    }
+  </p-card>
+} @else {
+  <p>Report not found.</p>
+}

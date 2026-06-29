@@ -1,0 +1,44 @@
+<div class="alert-bell">
+  <button type="button" class="bell-button" (click)="togglePanel($event)" aria-label="Alerts">
+    <i class="pi pi-bell"></i>
+    @if (unreadCount() > 0) {
+      <span class="badge">{{ unreadCount() > 99 ? '99+' : unreadCount() }}</span>
+    }
+  </button>
+
+  <p-popover #alertPopover styleClass="alert-popover">
+    <div class="popover-header">
+      <strong>Alerts</strong>
+      @if (unreadCount() > 0) {
+        <button type="button" class="link-button" (click)="markAllRead()">Mark all read</button>
+      }
+    </div>
+
+    @if (loadingRecent()) {
+      <p class="empty">Loading...</p>
+    } @else if (recentAlerts().length === 0) {
+      <p class="empty">No unread alerts</p>
+    } @else {
+      <ul class="alert-list">
+        @for (alert of recentAlerts(); track alert.id) {
+          <li>
+            <button type="button" class="alert-item" (click)="openAlert(alert)">
+              <div class="alert-item-top">
+                <p-tag value="HIGH" severity="danger" />
+                <span class="time">{{ formatDate(alert.createdAt) }}</span>
+              </div>
+              <strong>{{ alert.title }}</strong>
+              @if (alert.summary) {
+                <p>{{ alert.summary }}</p>
+              }
+            </button>
+          </li>
+        }
+      </ul>
+    }
+
+    <div class="popover-footer">
+      <a routerLink="/alerts" (click)="popover().hide()">View all alerts</a>
+    </div>
+  </p-popover>
+</div>

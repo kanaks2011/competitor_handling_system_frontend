@@ -1,1 +1,35 @@
-/* You can add global styles to this file, and also import other style files */
+@import 'tailwindcss';
+@import 'primeicons/primeicons.css';
+
+:root {
+  color-scheme: light;
+}
+
+body {
+  margin: 0;
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: #f4f6fb;
+  color: #1f2937;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 2rem 1rem;
+  color: #64748b;
+
+  i {
+    font-size: 2rem;
+    margin-bottom: 0.75rem;
+    display: block;
+    color: #94a3b8;
+  }
+
+  p {
+    margin: 0 0 1rem;
+  }
+}
+
+.loading-text {
+  margin: 0;
+  color: #64748b;
+}

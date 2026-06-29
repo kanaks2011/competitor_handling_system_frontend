@@ -1,0 +1,188 @@
+@if (summaryLoading()) {
+  <div class="dashboard-grid loading-grid">
+    @for (item of [1, 2, 3]; track item) {
+      <p-card styleClass="stat-card">
+        <p class="loading-text">Loading summary…</p>
+      </p-card>
+    }
+  </div>
+} @else if (summary(); as stats) {
+  <div class="dashboard-grid">
+    <p-card styleClass="stat-card">
+      <div class="stat">
+        <span>Competitors tracked</span>
+        <strong>{{ stats.totalCompetitors }}</strong>
+        <small>{{ stats.activeCompetitors }} active</small>
+        <p-button label="Manage" [text]="true" routerLink="/competitors" />
+      </div>
+    </p-card>
+
+    <p-card styleClass="stat-card">
+      <div class="stat">
+        <span>Events this week</span>
+        <strong>{{ stats.eventsThisWeek }}</strong>
+        <small>AI-analyzed competitor moves</small>
+      </div>
+    </p-card>
+
+    <p-card styleClass="stat-card">
+      <div class="stat">
+        <span>Unread alerts</span>
+        <strong>{{ stats.unreadAlerts }}</strong>
+        <p-button label="View alerts" [text]="true" routerLink="/alerts" />
+      </div>
+    </p-card>
+  </div>
+}
+
+<p-card header="Intelligence feed" styleClass="feed-card">
+  <div class="feed-toolbar">
+    <p-select
+      [options]="competitorOptions()"
+      optionLabel="label"
+      optionValue="value"
+      placeholder="All competitors"
+      [ngModel]="selectedCompetitorId()"
+      (ngModelChange)="selectedCompetitorId.set($event)"
+      styleClass="filter-select"
+    />
+    <p-select
+      [options]="urgencyOptions"
+      optionLabel="label"
+      optionValue="value"
+      placeholder="All urgency"
+      [ngModel]="selectedUrgency()"
+      (ngModelChange)="selectedUrgency.set($event)"
+      styleClass="filter-select"
+    />
+    <input type="date" class="date-input" [ngModel]="fromDate()" (ngModelChange)="fromDate.set($event)" />
+    <input type="date" class="date-input" [ngModel]="toDate()" (ngModelChange)="toDate.set($event)" />
+    <p-button label="Apply" icon="pi pi-filter" (onClick)="applyFeedFilters()" />
+    <p-button label="Clear" [outlined]="true" severity="secondary" (onClick)="clearFeedFilters()" />
+  </div>
+
+  <p-table
+    [value]="feed()"
+    [loading]="feedLoading()"
+    [paginator]="true"
+    [rows]="feedPageSize()"
+    [totalRecords]="feedTotal()"
+    [lazy]="true"
+    (onLazyLoad)="onFeedPageChange($event)"
+    [rowHover]="true"
+  >
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Urgency</th>
+        <th>Competitor</th>
+        <th>Change</th>
+        <th>Source</th>
+        <th>Detected</th>
+        <th></th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-item>
+      <tr>
+        <td>
+          @if (item.urgencyLevel) {
+            <p-tag [value]="item.urgencyLevel" [severity]="urgencySeverity(item.urgencyLevel)" />
+          } @else {
+            <span class="muted">—</span>
+          }
+        </td>
+        <td>
+          <a [routerLink]="['/competitors', item.competitorId]" class="link">{{ item.competitorName }}</a>
+        </td>
+        <td>
+          <div class="feed-copy">
+            <strong>{{ item.changeType ?? 'Competitor event' }}</strong>
+            <span>{{ item.mainMessage ?? '—' }}</span>
+          </div>
+        </td>
+        <td>
+          <span class="muted">{{ item.sourceType }}</span>
+        </td>
+        <td>{{ formatDate(item.createdAt) }}</td>
+        <td>
+          <p-button
+            label="View"
+            icon="pi pi-arrow-right"
+            [text]="true"
+            [routerLink]="['/events', item.id]"
+          />
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="6">
+          <div class="empty-state">
+            <i class="pi pi-chart-line"></i>
+            <p>No events yet. Run crawls to start building intelligence.</p>
+            <p-button label="Go to competitors" icon="pi pi-users" routerLink="/competitors" />
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</p-card>
+
+<p-card header="Competitor health overview" styleClass="health-card">
+  <p-table [value]="health()" [loading]="healthLoading()" [rowHover]="true">
+    <ng-template pTemplate="header">
+      <tr>
+        <th>Health</th>
+        <th>Competitor</th>
+        <th>Sources</th>
+        <th>Events (7d)</th>
+        <th>Significant (7d)</th>
+        <th>Peak urgency</th>
+        <th>Last activity</th>
+        <th></th>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-item>
+      <tr>
+        <td>
+          <p-tag [value]="healthLabel(item.healthStatus)" [severity]="healthSeverity(item.healthStatus)" />
+        </td>
+        <td>
+          <a [routerLink]="['/competitors', item.competitorId]" class="link">{{ item.competitorName }}</a>
+        </td>
+        <td>{{ item.activeSources }}/{{ item.totalSources }}</td>
+        <td>{{ item.eventsThisWeek }}</td>
+        <td>{{ item.significantChangesThisWeek }}</td>
+        <td>
+          @if (item.highestUrgencyThisWeek) {
+            <p-tag
+              [value]="item.highestUrgencyThisWeek"
+              [severity]="urgencySeverity(item.highestUrgencyThisWeek)"
+            />
+          } @else {
+            <span class="muted">—</span>
+          }
+        </td>
+        <td>{{ formatDate(item.lastChangeAt ?? item.lastEventAt) }}</td>
+        <td>
+          <p-button
+            label="Open"
+            icon="pi pi-external-link"
+            [text]="true"
+            [routerLink]="['/competitors', item.competitorId]"
+          />
+        </td>
+      </tr>
+    </ng-template>
+    <ng-template pTemplate="emptymessage">
+      <tr>
+        <td colspan="8">
+          <div class="empty-state">
+            <i class="pi pi-users"></i>
+            <p>No competitors yet. Add competitors to start tracking.</p>
+            <p-button label="Add competitor" icon="pi pi-plus" routerLink="/competitors/new" />
+          </div>
+        </td>
+      </tr>
+    </ng-template>
+  </p-table>
+</p-card>

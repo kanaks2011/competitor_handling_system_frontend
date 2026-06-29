@@ -1,0 +1,92 @@
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+@media (max-width: 900px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.stat {
+  display: grid;
+  gap: 0.35rem;
+
+  span {
+    color: #64748b;
+    font-size: 0.875rem;
+  }
+
+  small {
+    color: #94a3b8;
+    font-size: 0.8125rem;
+  }
+
+  strong {
+    font-size: 2rem;
+    line-height: 1;
+  }
+}
+
+.feed-card,
+.health-card {
+  margin-bottom: 1rem;
+}
+
+.feed-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  align-items: center;
+}
+
+.date-input {
+  border: 1px solid #cbd5e1;
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  font: inherit;
+  color: #0f172a;
+}
+
+.feed-copy {
+  display: grid;
+  gap: 0.2rem;
+
+  strong {
+    color: #0f172a;
+  }
+
+  span {
+    color: #64748b;
+    font-size: 0.875rem;
+  }
+}
+
+.link {
+  color: #4f46e5;
+  text-decoration: none;
+  font-weight: 500;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.muted {
+  color: #64748b;
+}
+
+@media (max-width: 900px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .feed-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
