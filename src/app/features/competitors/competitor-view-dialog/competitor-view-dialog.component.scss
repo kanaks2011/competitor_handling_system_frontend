@@ -70,6 +70,9 @@
 .event-list {
   display: grid;
   gap: 0.625rem;
+  max-height: 20rem;
+  overflow: auto;
+  padding-right: 0.25rem;
 }
 
 .event-item {
@@ -102,6 +105,9 @@
   display: grid;
   gap: 0;
   padding-left: 0.75rem;
+  max-height: 22rem;
+  overflow: auto;
+  padding-right: 0.25rem;
 }
 
 .timeline-item {

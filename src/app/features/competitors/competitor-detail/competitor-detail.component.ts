@@ -515,7 +515,7 @@ export class CompetitorDetailComponent implements OnInit {
         this.messageService.add({
           severity: 'error',
           summary: 'Analysis failed',
-          detail: error.error?.message ?? 'Gemini analysis failed',
+          detail: error.error?.message ?? 'AI analysis failed',
         });
       },
     });

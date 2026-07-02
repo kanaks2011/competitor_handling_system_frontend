@@ -44,7 +44,7 @@ export class LoginComponent {
     {
       icon: 'pi pi-sparkles',
       title: 'AI-powered analysis',
-      description: 'Gemini turns page diffs into urgency, risk, messaging, and positioning insights.',
+      description: 'AI turns page diffs into urgency, risk, messaging, and positioning insights.',
     },
     {
       icon: 'pi pi-bell',

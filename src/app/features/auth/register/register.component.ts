@@ -49,7 +49,7 @@ export class RegisterComponent {
     {
       icon: 'pi pi-bolt',
       title: 'AI response playbooks',
-      description: 'Gemini generates battlecards, campaign ideas, and objection-handling notes.',
+      description: 'AI generates battlecards, campaign ideas, and objection-handling notes.',
     },
     {
       icon: 'pi pi-envelope',

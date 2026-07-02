@@ -96,7 +96,7 @@ export class EventDetailComponent implements OnInit {
           this.messageService.add({
             severity: 'error',
             summary: 'Regeneration failed',
-            detail: response.errorMessage ?? 'Gemini could not regenerate responses. Try again in a minute.',
+            detail: response.errorMessage ?? 'AI could not regenerate responses. Try again in a minute.',
           });
           return;
         }
